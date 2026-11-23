@@ -1,0 +1,52 @@
+WattBot – C++ Backend Logic
+Source: home_energy_cpp/main.cpp (original ZIP)
+
+// ------------------------------------------------------------------ WattBot
+struct BotRule { vector<string> keys; string en, hi, hg; };
+string botReply(string q,const string &lang){
+ q=lowerText(q);
+ static const vector<BotRule> rules={
+  {{"outage","power cut","bijli gayi","light gayi","light cut","electricity gone"},
+   "During a power cut, switch off non-essential appliances, keep fridge/freezer doors closed, save phone and inverter battery, and use a torch. Never touch fallen wires or attempt electrical repairs. When supply returns, reconnect appliances gradually.",
+   "बिजली जाने पर गैर-ज़रूरी उपकरण बंद करें, फ्रिज का दरवाज़ा बंद रखें और फोन/इन्वर्टर की बैटरी बचाएँ। गिरे हुए तारों को न छुएँ और खुद मरम्मत न करें। बिजली आने पर उपकरण धीरे-धीरे चालू करें।",
+   "Power cut mein non-essential appliances off kar do, fridge ka door closed rakho aur phone/inverter battery save karo. Fallen wires ko touch mat karna aur khud repair mat karna. Light aane par appliances gradually ON karna."},
+  {{"inverter","battery"},
+   "To conserve backup, switch off non-essential loads, avoid high-power appliances such as heaters and kettles, and do not overload the inverter. Follow the battery manufacturer's instructions.",
+   "बैकअप बचाने के लिए गैर-ज़रूरी उपकरण बंद रखें, हीटर और केतली जैसे अधिक बिजली लेने वाले उपकरण न चलाएँ और इन्वर्टर पर अधिक लोड न डालें।",
+   "Backup bachane ke liye non-essential appliances off rakho, heater/kettle jaise high-power devices avoid karo aur inverter overload mat karo."},
+  {{"fridge","refrigerator"},
+   "Keep refrigerator and freezer doors closed. A full freezer generally stays cold longer than an empty one. If food has become warm for an unsafe period, follow food-safety guidance and discard items when in doubt.",
+   "फ्रिज और फ्रीज़र के दरवाज़े बंद रखें। खाना लंबे समय तक गर्म रहा हो तो खाद्य-सुरक्षा निर्देशों का पालन करें।",
+   "Fridge/freezer ka door band rakho. Baar-baar mat kholo. Agar food kaafi der unsafe temperature par raha ho, food safety guidance follow karo."},
+  {{"bill","cost","tariff"},
+   "Estimated bill = grid units (kWh) × assumed tariff. This demo uses Rs 8 per unit; actual bills may include slab rates, fixed charges and taxes.",
+   "अनुमानित बिल = ग्रिड यूनिट (kWh) × निर्धारित दर। इस डेमो में ₹8 प्रति यूनिट माना गया है। वास्तविक बिल में अन्य शुल्क भी हो सकते हैं।",
+   "Estimated bill = grid units (kWh) × tariff. Is demo mein ₹8/unit assume kiya hai; actual bill mein fixed charges, slab rates aur taxes bhi ho sakte hain."},
+  {{"solar"},
+   "Solar Management estimates the solar and grid contribution. With solar ON, the model assumes 60% of your usage is met by solar. These are estimates, not live inverter readings.",
+   "सोलर मैनेजमेंट सोलर और ग्रिड का अनुमानित योगदान दिखाता है। सोलर ON होने पर लगभग 60% खपत सोलर से मानी जाती है। ये वास्तविक इन्वर्टर रीडिंग नहीं हैं।",
+   "Solar ON hone par demo 60% usage solar se assume karta hai. Ye estimates hain, live inverter readings nahi."},
+  {{"add","appliance","device"},
+   "Open My Appliances, choose an appliance, enter the date and approximate hours used, then tap Add usage. If it is missing, use 'Can't find your appliance? Add it yourself' to save a custom appliance to your account.",
+   "My Appliances खोलें, उपकरण चुनें, तारीख और घंटे भरें और Add usage दबाएँ। सूची में न हो तो अपना उपकरण जोड़ने वाला विकल्प चुनें; वह आपके अकाउंट में सेव रहेगा।",
+   "My Appliances kholo, appliance select karo, date aur hours bharo aur Add usage dabao. List mein nahi hai toh 'Add it yourself' option use karo; wo tumhare account mein save rahega."},
+  {{"report"},
+   "Open Complete Report to see your monthly energy, estimated bill, solar/grid split and appliance-wise schedule. Tap a report card or row for its calculation details.",
+   "Complete Report में मासिक खपत, अनुमानित बिल, सोलर/ग्रिड योगदान और उपकरणों का विवरण देखें। अधिक जानकारी के लिए कार्ड या पंक्ति पर टैप करें।",
+   "Complete Report kholo. Monthly units, estimated bill, solar/grid split aur appliance-wise details milengi. Calculation samajhne ke liye cards ya rows tap karo."},
+  {{"reduce","save energy","saving","bachat"},
+   "Use LED lighting, switch off idle devices, avoid standby loads, maintain AC filters, and shift deferrable heavy use away from peak hours where your tariff supports it.",
+   "LED लाइट का उपयोग करें, खाली उपकरण बंद रखें, स्टैंडबाय बिजली कम करें और जहाँ संभव हो भारी उपयोग पीक समय से हटाएँ।",
+   "LED use karo, idle devices off rakho, standby load kam karo aur possible ho toh heavy usage peak hours se shift karo."}
+ };
+ bool hi=(lang=="Hindi"), hg=(lang=="Hinglish");
+ for(auto &r:rules)for(auto &k:r.keys)if(q.find(k)!=string::npos)return hi?r.hi:(hg?r.hg:r.en);
+ if(hi)return "मुझे यह सवाल समझ नहीं आया। आप उपकरण, बिजली बिल, सोलर, ऊर्जा बचत, रिपोर्ट या बिजली कटौती के बारे में पूछ सकते हैं।";
+ if(hg)return "Ye question abhi samajh nahi aaya. Appliances, bill, solar, energy saving, report ya power cut ke baare mein pooch kar dekho.";
+ return "I couldn't match that question yet. Try asking about appliances, electricity bills, solar management, energy saving, reports or power cuts.";
+}
+
+// API route handler (exact line from main.cpp)
+else if(method=="POST"&&route=="/api/bot"){ auto m=parseForm(body); sendResponse(client,"200 OK",JSON,"{\"reply\":\""+jsonEscape(botReply(m["question"],m["lang"]))+"\"}"); }
+
+Dependencies used by this extracted section are defined elsewhere in main.cpp (for example lowerText, vector, jsonEscape, parseForm and sendResponse). This is an extracted project section, not a standalone program.

@@ -1,0 +1,41 @@
+WattBot – Frontend (HTML, CSS and JavaScript)
+Source: home_energy_cpp/templates/index.html (original ZIP)
+
+/* CSS rules used by WattBot */
+.bot-launch{position:fixed;right:18px;bottom:18px;width:62px;height:62px;border-radius:50%;background:linear-gradient(145deg,#d8b4fe,#a78bfa);color:#31204c;box-shadow:0 8px 28px #0008;border:3px solid #fff3;z-index:1100;font-size:27px;display:flex;align-items:center;justify-content:center}
+.bot-label{position:fixed;right:90px;bottom:30px;background:#172638;border:1px solid #496174;color:#e9ddff;border-radius:14px;padding:9px 12px;font-size:12px;z-index:1099}
+.bot-window{position:fixed;right:18px;bottom:92px;width:min(370px,calc(100vw - 28px));height:min(570px,calc(100vh - 125px));display:none;flex-direction:column;background:#142437;border:1px solid #587080;border-radius:20px;box-shadow:0 18px 60px #000b;z-index:1101;overflow:hidden}
+.bot-window.show{display:flex}
+.bot-head{padding:14px;background:linear-gradient(100deg,#164e45,#263b59);display:flex;align-items:center;gap:10px}
+.bot-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#e9d5ff;color:#54336f;font-size:23px}
+.bot-head strong{display:block}
+.bot-head small{color:#b9e8d5}
+.bot-head button{margin-left:auto;background:#ffffff20;color:white;border-radius:8px;padding:7px 10px}
+.bot-messages{padding:13px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:10px}
+.bot-msg{max-width:91%;padding:10px 12px;border-radius:14px;background:#263b50;color:#e5edf5;font-size:13px;line-height:1.55;white-space:pre-wrap}
+.bot-msg.user{align-self:flex-end;background:#075e4b}
+.bot-suggestions{display:flex;flex-wrap:wrap;gap:7px;padding:0 12px 10px}
+.bot-suggestions button{background:#20394a;border:1px solid #4a6876;color:#d9fbe9;border-radius:20px;padding:7px 9px;font-size:11px}
+.bot-compose{display:flex;gap:7px;padding:10px;border-top:1px solid #34495b}
+.bot-compose input{flex:1;min-width:0}
+.bot-compose button{background:#059669;color:white;border-radius:10px;padding:0 14px}
+.bot-lang{width:auto!important;margin-left:auto;padding:7px!important;font-size:12px!important;background:#102333!important}
+.bot-launch{right:13px;bottom:13px;width:56px;height:56px}
+.bot-label{right:78px;bottom:24px}
+.bot-window{right:10px;bottom:80px;width:calc(100vw - 20px)}
+
+<!-- WattBot interface markup -->
+<button class="bot-launch" id="botLaunch" onclick="toggleBot()" aria-label="Open WattBot">🤖</button><div class="bot-label" id="botLabel">Need help? Tap me!</div>
+<div class="bot-window" id="botWindow"><div class="bot-head"><div class="bot-avatar">⚡</div><div><strong>WattBot</strong><small>● Your Energy Assistant</small></div><select id="botLang" class="bot-lang" onchange="setBotLanguage()"><option>Hinglish</option><option>English</option><option>Hindi</option></select><button onclick="toggleBot()">×</button></div><div class="bot-messages" id="botMessages"><div class="bot-msg" id="botWelcome">Heyyy! 👋 Main WattBot hoon. Website use karne mein help chahiye? Neeche suggested questions try karo ya apna question type karo.</div></div><div class="bot-suggestions" id="botSuggestions"><button onclick="askSuggested('How do I add an appliance?')">Add appliance</button><button onclick="askSuggested('How is my electricity bill calculated?')">Bill calculation</button><button onclick="askSuggested('How does solar management work?')">Solar help</button><button onclick="askSuggested('How can I save energy during a power cut?')">Power cut help</button><button onclick="askSuggested('How do I view my complete report?')">Complete report</button></div><div class="bot-compose"><input id="botInput" placeholder="Ask WattBot anything..." onkeydown="if(event.key==='Enter')sendBot()"><button onclick="sendBot()">Send</button></div></div>
+
+// WattBot interaction functions
+function toggleBot(){let w=$('botWindow');w.classList.toggle('show');$('botLabel').style.display=w.classList.contains('show')?'none':'block';if(w.classList.contains('show'))$('botInput').focus()}
+function setBotLanguage(){let lang=$('botLang').value;let msg=lang==='English'?'Hello! 👋 I’m WattBot. Need help using the website? Choose a suggested question or type your own.':lang==='Hindi'?'नमस्ते! 👋 मैं WattBot हूँ। वेबसाइट इस्तेमाल करने में मदद चाहिए? नीचे सवाल चुनें या अपना सवाल लिखें।':'Heyyy! 👋 Main WattBot hoon. Website use karne mein help chahiye? Suggested questions try karo ya apna question type karo.';$('botWelcome').textContent=msg}
+function addBotMessage(txt,who){let d=document.createElement('div');d.className='bot-msg'+(who==='user'?' user':'');d.textContent=txt;$('botMessages').appendChild(d);$('botMessages').scrollTop=$('botMessages').scrollHeight}
+async function askSuggested(q){$('botInput').value=q;await sendBot()}
+async function sendBot(){let q=$('botInput').value.trim();if(!q)return;addBotMessage(q,'user');$('botInput').value='';try{let d=await api('/api/bot',{question:q,lang:$('botLang').value});addBotMessage(d.reply,'bot')}catch(e){addBotMessage('Sorry, abhi response nahi aa paaya. Please try again.','bot')}}
+
+// Shared API helper used by sendBot() (defined elsewhere in index.html)
+async function api(path,body){let opt={method:body?'POST':'GET',cache:'no-store',headers:{}};const t=localStorage.getItem(TOKEN_KEY);if(t)opt.headers['X-Auth-Token']=t;if(body){opt.headers['Content-Type']='application/x-www-form-urlencoded';opt.body=new URLSearchParams(body)}let r=await fetch(path,opt);let raw=await r.text();let d;try{d=raw?JSON.parse(raw):{}}catch(e){throw new Error('This address is not serving the Home Energy C++ API. Open the exact URL printed in the terminal.')}if(r.status===401&&!/^\/api\/(login|register)/.test(path)){localStorage.removeItem(TOKEN_KEY);showAuthGate();throw new Error('Please log in again.')}if(!r.ok)throw new Error(d.error||('Server returned '+r.status));return d}
+
+This is an extracted project section. It relies on the page existing helpers such as $() and api(), plus the C++ /api/bot endpoint in the backend file.
